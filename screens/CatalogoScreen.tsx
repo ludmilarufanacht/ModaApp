@@ -21,7 +21,7 @@ type Producto = {
   color: string;
   precio: number;
   cantidad: number;
-  foto?: string;
+  foto?: string | number;
 };
 
 export default function CatalogScreen() {
@@ -51,16 +51,9 @@ const [showCategories, setShowCategories] = useState(false);
   const [productoEditando, setProductoEditando] =
   useState<Producto | null>(null);
   const cargarProductos = async () => {
-    const datos = await getData("productos");
-
-    if (datos && datos.length > 0) {
-      setProductos(datos);
-      return;
-    }
-
-    setProductos(productosIniciales);
-    await saveData("productos", productosIniciales);
-  };
+  setProductos(productosIniciales);
+ // await saveData("productos", productosIniciales);
+};
 
   const agregarProducto = (producto: Producto) => {
     setProductos([...productos, producto]);

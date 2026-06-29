@@ -8,7 +8,7 @@ export const productosIniciales = [
     color: "Blanco",
     precio: 18000,
     cantidad: 15,
-    foto: "https://images.unsplash.com/photo-1520975916090-3105956dac38",
+    foto: "remerablanca",
   },
   {
     id: "2",
@@ -18,7 +18,7 @@ export const productosIniciales = [
     color: "Negro",
     precio: 22000,
     cantidad: 8,
-    foto: "",
+    foto: "remeranegra",
   },
   {
     id: "3",
@@ -28,7 +28,7 @@ export const productosIniciales = [
     color: "Azul",
     precio: 45000,
     cantidad: 6,
-    foto: "",
+    foto: "jeanazul",
   },
   {
     id: "4",
@@ -38,7 +38,7 @@ export const productosIniciales = [
     color: "Estampado",
     precio: 52000,
     cantidad: 5,
-    foto: "",
+    foto: "vestidofloral",
   },
   {
     id: "5",
@@ -48,7 +48,7 @@ export const productosIniciales = [
     color: "Negro",
     precio: 55000,
     cantidad: 7,
-    foto: "",
+    foto: "vestidonegro",
   },
   {
     id: "6",
@@ -58,6 +58,6 @@ export const productosIniciales = [
     color: "Azul",
     precio: 68000,
     cantidad: 3,
-    foto: "",
+    foto: "camperadenim",
   },
 ];

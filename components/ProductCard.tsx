@@ -15,9 +15,17 @@ type Producto = {
   color: string;
   precio: number;
   cantidad: number;
-  foto?: string;
+  foto?: string | number; // Puede ser una URL (string) o un recurso local (number)
 };
 
+const imagenes = {
+  "remerablanca": require("../assets/imagenes/remerablanca.png"),
+  "remeranegra": require("../assets/imagenes/remeranegra.png"),
+  "jeanazul": require("../assets/imagenes/jeanazul.png"),
+  "vestidofloral": require("../assets/imagenes/vestidofloral.png"),
+  "vestidonegro": require("../assets/imagenes/vestidonegro.png"),
+  "camperadenim": require("../assets/imagenes/camperadenim.png"),
+};
 
 type Props = {
   producto: Producto;
@@ -31,17 +39,18 @@ export default function ProductCard({
   onEdit
 }: Props) {
   return (
+    
     <View style={styles.card}>
       {producto.foto ? (
-        <Image
-          source={{ uri: producto.foto }}
-          style={styles.image}
-        />
+       <Image
+  source={imagenes[producto.foto as keyof typeof imagenes]}
+  style={styles.image}
+  resizeMode="contain"
+/>
       ) : (
         <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>
-            👗
-          </Text>
+          <Text style={styles.placeholderText}>👗</Text>
+          
         </View>
       )}
 
@@ -93,9 +102,11 @@ const styles = StyleSheet.create({
 
   image: {
     width: "100%",
-    height: 140,
+    height: 180,
     borderRadius: 10,
     marginBottom: 10,
+    resizeMode: "contain",
+    backgroundColor: "#ffffff",
   },
 
   placeholder: {
