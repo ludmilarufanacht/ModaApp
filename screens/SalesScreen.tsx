@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -7,8 +8,17 @@ import {
   FlatList,
   StyleSheet,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { saveData, getData } from "../services/storage";
+
+const categoriasPrendas = [
+  "Todas",
+  "Remeras",
+  "Pantalones",
+  "Vestidos",
+  "Camperas",
+];
 
 type Producto = {
   id: string;
@@ -44,9 +54,78 @@ export default function SalesScreen() {
   const [cantidad, setCantidad] =
     useState("");
 
+  const [nuevoStock, setNuevoStock] =
+    useState("");
+
+  const [busqueda, setBusqueda] =
+    useState("");
+
+  const [selectedCategory, setSelectedCategory] =
+    useState("Todas");
+
+  const [showCategories, setShowCategories] =
+    useState(false);
+
+  const productosFiltrados = productos.filter(
+    (producto) => {
+      const textoBusqueda = busqueda.toLowerCase();
+
+      const coincideBusqueda =
+        producto.nombre
+          .toLowerCase()
+          .includes(textoBusqueda) ||
+        producto.categoria
+          .toLowerCase()
+          .includes(textoBusqueda) ||
+        producto.talle
+          .toLowerCase()
+          .includes(textoBusqueda) ||
+        producto.color
+          .toLowerCase()
+          .includes(textoBusqueda);
+
+      const coincideCategoria =
+        selectedCategory === "Todas" ||
+        producto.categoria === selectedCategory;
+
+      return coincideBusqueda && coincideCategoria;
+    }
+  );
+
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      cargarDatos();
+    }, [])
+  );
+
+  useEffect(() => {
+    if (!productoSeleccionado) return;
+
+    const productoActualizado =
+      productos.find(
+        (p) => p.id === productoSeleccionado.id
+      ) || null;
+
+    if (!productoActualizado) {
+      setProductoSeleccionado(null);
+      setNuevoStock("");
+      return;
+    }
+
+    if (
+      productoActualizado.cantidad !==
+      productoSeleccionado.cantidad
+    ) {
+      setProductoSeleccionado(productoActualizado);
+      setNuevoStock(
+        productoActualizado.cantidad.toString()
+      );
+    }
+  }, [productos]);
 
   const cargarDatos = async () => {
     const productosGuardados =
@@ -60,6 +139,11 @@ export default function SalesScreen() {
 
     if (ventasGuardadas)
       setVentas(ventasGuardadas);
+  };
+
+  const seleccionarProducto = (producto: Producto) => {
+    setProductoSeleccionado(producto);
+    setNuevoStock(producto.cantidad.toString());
   };
 
   const registrarVenta = async () => {
@@ -101,6 +185,18 @@ export default function SalesScreen() {
 
     setProductos(nuevosProductos);
 
+    const productoActualizado =
+      nuevosProductos.find(
+        (p) => p.id === productoSeleccionado.id
+      ) || null;
+
+    setProductoSeleccionado(productoActualizado);
+    setNuevoStock(
+      productoActualizado
+        ? productoActualizado.cantidad.toString()
+        : ""
+    );
+
     await saveData(
       "productos",
       nuevosProductos
@@ -109,6 +205,7 @@ export default function SalesScreen() {
     setCantidad("");
   };
 
+
   return (
     <View style={styles.container}>
 
@@ -116,12 +213,77 @@ export default function SalesScreen() {
         Registro de Ventas
       </Text>
 
-      {productos.map((producto) => (
+      <View style={styles.filtersRow}>
+        <TextInput
+          placeholder="Buscar producto..."
+          value={busqueda}
+          onChangeText={setBusqueda}
+          style={styles.search}
+        />
+
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            selectedCategory !== "Todas" &&
+              styles.filterButtonActive,
+          ]}
+          onPress={() =>
+            setShowCategories(!showCategories)
+          }
+          accessibilityLabel="Filtrar por tipo de prenda"
+        >
+          <Ionicons
+            name="filter"
+            size={22}
+            color="white"
+          />
+        </TouchableOpacity>
+      </View>
+
+      {showCategories && (
+        <View style={styles.categoriesList}>
+          {categoriasPrendas.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[
+                styles.categoryItem,
+                selectedCategory === cat &&
+                  styles.categorySelected,
+              ]}
+              onPress={() => {
+                setSelectedCategory(cat);
+                setShowCategories(false);
+              }}
+            >
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === cat &&
+                    styles.categoryTextSelected,
+                ]}
+              >
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {productosFiltrados.length === 0 ? (
+        <Text style={styles.emptyText}>
+          No se encontraron productos.
+        </Text>
+      ) : (
+        productosFiltrados.map((producto) => (
         <TouchableOpacity
           key={producto.id}
-          style={styles.producto}
+          style={[
+            styles.producto,
+            productoSeleccionado?.id === producto.id &&
+              styles.productoSeleccionado,
+          ]}
           onPress={() =>
-            setProductoSeleccionado(producto)
+            seleccionarProducto(producto)
           }
         >
           <Text>
@@ -130,7 +292,33 @@ export default function SalesScreen() {
             Stock: {producto.cantidad}
           </Text>
         </TouchableOpacity>
-      ))}
+        ))
+      )}
+
+      {productoSeleccionado && (
+        <View style={styles.stockBox}>
+          <Text style={styles.stockTitle}>
+            {productoSeleccionado.nombre}
+          </Text>
+          <View style={styles.stockRow}>
+            <TextInput
+              placeholder="Nuevo stock"
+              value={nuevoStock}
+              onChangeText={setNuevoStock}
+              keyboardType="numeric"
+              style={styles.stockInput}
+            />
+
+            <TouchableOpacity
+              style={styles.stockButton}
+            >
+              <Text style={styles.buttonText}>
+                Guardar
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <TextInput
         placeholder="Cantidad"
@@ -193,6 +381,109 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
     padding: 12,
     marginBottom: 10,
+    borderRadius: 10,
+  },
+
+  productoSeleccionado: {
+    borderWidth: 2,
+    borderColor: "#7B2CBF",
+  },
+
+  filtersRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 10,
+  },
+
+  search: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 10,
+  },
+
+  filterButton: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#333",
+    borderRadius: 10,
+  },
+
+  filterButtonActive: {
+    backgroundColor: "#7B2CBF",
+  },
+
+  categoriesList: {
+    backgroundColor: "#f2f2f2",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+
+  categoryItem: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: "#ddd",
+  },
+
+  categorySelected: {
+    backgroundColor: "#7B2CBF",
+  },
+
+  categoryText: {
+    color: "black",
+    fontWeight: "bold",
+  },
+
+  categoryTextSelected: {
+    color: "white",
+  },
+
+  emptyText: {
+    color: "#777",
+    marginBottom: 10,
+  },
+
+  stockBox: {
+    backgroundColor: "#f2f2f2",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+
+  stockTitle: {
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+
+  stockText: {
+    color: "#555",
+    marginBottom: 10,
+  },
+
+  stockRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  stockInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+  },
+
+  stockButton: {
+    backgroundColor: "#7B2CBF",
+    paddingHorizontal: 14,
+    justifyContent: "center",
     borderRadius: 10,
   },
 
