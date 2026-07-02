@@ -1,13 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-  ActivityIndicator,
-} from "react-native";
+import {View,Text,StyleSheet,ScrollView,TouchableOpacity,Animated,ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useIsFocused } from "@react-navigation/native";
 import { Settings } from "lucide-react-native";

@@ -10,7 +10,7 @@ Lista de mejoras pendientes para próximas iteraciones de **ModaApp**.
   observaciones). Puede resolverse con un modal o una pantalla de detalle,
   reutilizando el estilo de `CustomDialog` / las tarjetas existentes.
 
-## Mejoras técnicas detectadas
+## Mejoras técnicas
 
 - [ ] **Persistencia de las fotos.** Las imágenes tomadas quedan como URI
   (`file:` / `blob:`) que no sobrevive a una recarga en web. Guardar la imagen

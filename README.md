@@ -104,7 +104,7 @@ ModaApp/
 ├── screens/
 │   ├── LoginScreen.tsx         # Login y registro de usuarios
 │   ├── HomeScreen.tsx          # Tablero: accesos rápidos, alertas y actividad
-│   ├── CatalogoScreen.tsx      # Listado (FlatList) + ABM de productos y categorías
+│   ├── CatalogScreen.tsx      # Listado (FlatList) + ABM de productos y categorías
 │   ├── SalesScreen.tsx         # Registro de ventas con carrito
 │   ├── StatisticsScreen.tsx    # Métricas del negocio
 │   └── SettingsScreen.tsx      # Preferencias (modo oscuro, filtros)
