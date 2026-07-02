@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
+import { Pencil, Trash2 } from "lucide-react-native";
 
 type Producto = {
   id: string;
@@ -27,6 +28,15 @@ const imagenes = {
   "camperadenim": require("../assets/imagenes/camperadenim.png"),
 };
 
+// La foto puede ser: una clave del set de imágenes semilla, un recurso local
+// (number de require) o una URI de cámara/galería/web. Resolvemos las tres.
+const resolverImagen = (foto?: string | number) => {
+  if (!foto) return null;
+  if (typeof foto === "number") return foto;
+  if (foto in imagenes) return imagenes[foto as keyof typeof imagenes];
+  return { uri: foto };
+};
+
 type Props = {
   producto: Producto;
   onDelete: (id: string) => void;
@@ -41,24 +51,26 @@ export default function ProductCard({
   return (
     
     <View style={styles.card}>
-      {producto.foto ? (
-       <Image
-  source={imagenes[producto.foto as keyof typeof imagenes]}
-  style={styles.image}
-  resizeMode="contain"
-/>
-      ) : (
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>👗</Text>
-          
+      <View style={styles.imageContainer}>
+        {resolverImagen(producto.foto) ? (
+          <Image
+            source={resolverImagen(producto.foto)!}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={styles.placeholder}>
+            <Text style={styles.placeholderText}>👗</Text>
+          </View>
+        )}
+        <View style={styles.categoryBadge}>
+          <Text style={styles.categoryBadgeText}>{producto.categoria}</Text>
         </View>
-      )}
+      </View>
 
-      <Text style={styles.nombre}>
+      <Text style={styles.nombre} numberOfLines={2}>
         {producto.nombre}
       </Text>
-
-      <Text>{producto.categoria}</Text>
 
       <Text>Talle: {producto.talle}</Text>
 
@@ -68,25 +80,24 @@ export default function ProductCard({
         ${producto.precio}
       </Text>
 
-      <Text>
+      <Text style={{ marginBottom: 5 }}>
         Stock: {producto.cantidad}
       </Text>
-      <TouchableOpacity
-  style={styles.edit}
-  onPress={() => onEdit && onEdit(producto)}
->
-  <Text style={{ color: "white" }}>
-    ✏️ Editar
-  </Text>
-</TouchableOpacity>
-      <TouchableOpacity
-        style={styles.delete}
-        onPress={() => onDelete(producto.id)}
-      >
-        <Text style={{ color: "white" }}>
-          Eliminar
-        </Text>
-      </TouchableOpacity>
+      
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity
+          style={styles.editBtnSmall}
+          onPress={() => onEdit && onEdit(producto)}
+        >
+          <Pencil color="white" size={16} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteBtnSmall}
+          onPress={() => onDelete(producto.id)}
+        >
+          <Trash2 color="white" size={16} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -100,54 +111,76 @@ const styles = StyleSheet.create({
   elevation: 4,
 },
 
-  image: {
+  imageContainer: {
+    position: "relative",
     width: "100%",
     height: 180,
     borderRadius: 10,
     marginBottom: 10,
+    overflow: "hidden",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
-
   placeholder: {
     width: "100%",
-    height: 180,
+    height: "100%",
     backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
-    marginBottom: 10,
   },
-
   placeholderText: {
     fontSize: 60,
   },
-
- nombre: {
-  fontSize: 16,
-  fontWeight: "bold",
-  marginBottom: 5,
-},
-
+  categoryBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    backgroundColor: "rgba(123, 44, 191, 0.9)",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  categoryBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  nombre: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+    height: 40,
+  },
   precio: {
     fontSize: 18,
     color: "#7B2CBF",
     fontWeight: "bold",
     marginVertical: 5,
   },
-
-  delete: {
+  actionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 10,
-    backgroundColor: "#d62828",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
   },
-  edit: {
-    marginTop: 10,
+  editBtnSmall: {
+    flex: 1,
     backgroundColor: "#3A86FF",
-    padding: 10,
+    paddingVertical: 8,
     borderRadius: 8,
     alignItems: "center",
+    justifyContent: "center",
+    marginRight: 6,
+  },
+  deleteBtnSmall: {
+    flex: 1,
+    backgroundColor: "#d62828",
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -1,0 +1,72 @@
+{
+  "productos": [
+    {
+      "id": "1",
+      "nombre": "Remera Básica Blanca",
+      "categoria": "Remeras",
+      "talle": "M",
+      "color": "Blanco",
+      "precio": 18000,
+      "cantidad": 15,
+      "foto": "remerablanca"
+    },
+    {
+      "id": "2",
+      "nombre": "Remera Oversize Negra",
+      "categoria": "Remeras",
+      "talle": "L",
+      "color": "Negro",
+      "precio": 22000,
+      "cantidad": 8,
+      "foto": "remeranegra"
+    },
+    {
+      "id": "3",
+      "nombre": "Jean Skinny Azul",
+      "categoria": "Pantalones",
+      "talle": "40",
+      "color": "Azul",
+      "precio": 45000,
+      "cantidad": 6,
+      "foto": "jeanazul"
+    },
+    {
+      "id": "4",
+      "nombre": "Vestido Floral",
+      "categoria": "Vestidos",
+      "talle": "M",
+      "color": "Estampado",
+      "precio": 52000,
+      "cantidad": 5,
+      "foto": "vestidofloral"
+    },
+    {
+      "id": "5",
+      "nombre": "Vestido Negro",
+      "categoria": "Vestidos",
+      "talle": "S",
+      "color": "Negro",
+      "precio": 55000,
+      "cantidad": 7,
+      "foto": "vestidonegro"
+    },
+    {
+      "id": "6",
+      "nombre": "Campera Denim",
+      "categoria": "Camperas",
+      "talle": "L",
+      "color": "Azul",
+      "precio": 68000,
+      "cantidad": 3,
+      "foto": "camperadenim"
+    }
+  ],
+  "ventas": [],
+  "categorias": [],
+  "usuarios": [
+    {
+      "user": "ludmi",
+      "pass": "1234"
+    }
+  ]
+}

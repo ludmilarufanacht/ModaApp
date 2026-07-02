@@ -1,5 +1,19 @@
+// Productos predeterminados. El campo `foto` es una clave del set de imágenes
+// locales definido en components/ProductCard.tsx (assets/imagenes/*.png).
+// Se siembran en el almacenamiento la primera vez que el catálogo está vacío.
 
-export const productosIniciales = [
+export type ProductoInicial = {
+  id: string;
+  nombre: string;
+  categoria: string;
+  talle: string;
+  color: string;
+  precio: number;
+  cantidad: number;
+  foto: string;
+};
+
+export const productosIniciales: ProductoInicial[] = [
   {
     id: "1",
     nombre: "Remera Básica Blanca",

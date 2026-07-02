@@ -34,7 +34,7 @@ export default function AppNavigator() {
       options={{ headerShown: false}}
     />
     <Stack.Screen
-      name="Catalogo"
+      name="Catálogo"
       component={CatalogoScreen}
       options={{ headerShown: false }}
     />

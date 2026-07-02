@@ -5,17 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  Platform,
 } from "react-native";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 import { getData, saveData } from "../services/storage";
-
-const usuario = "admin";
-const password = "1234";
-
-type Cuenta = {
-  usuario: string;
-  password: string;
-};
+import LoadingOverlay from "../components/LoadingOverlay";
 
 type Props = {
   navigation: any;
@@ -24,191 +19,150 @@ type Props = {
 export default function LoginScreen({ navigation }: Props) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
-  const [confirmarPass, setConfirmarPass] =
-    useState("");
-  const [crearCuenta, setCrearCuenta] =
-    useState(false);
-  const [mostrarPassword, setMostrarPassword] =
-    useState(false);
-  const [mensajeError, setMensajeError] =
-    useState("");
-  const [cuentaCreada, setCuentaCreada] =
-    useState(false);
+  const [confirmPass, setConfirmPass] = useState("");
+  const [isRegister, setIsRegister] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
-  const iniciarSesion = async () => {
-    setMensajeError("");
-    setCuentaCreada(false);
+  const handleAuth = async () => {
+    setErrorMsg("");
+    
+    const cleanUser = user.trim();
+    const cleanPass = pass.trim();
 
-    if (!user.trim() || !pass.trim()) {
-      setMensajeError("Debe completar todos los campos.");
+    if (!cleanUser || !cleanPass) {
+      setErrorMsg("Por favor, completa todos los campos.");
       return;
     }
 
-    const usuarioIngresado = user.trim();
-    const usuariosGuardados: Cuenta[] =
-      await getData("usuarios");
+    // Cargar usuarios de almacenamiento local
+    let usuariosExistentes;
+    try {
+      usuariosExistentes = await getData("usuarios");
+    } catch (err) {
+      console.warn("Error al acceder a los datos de usuarios:", err);
+      setErrorMsg("No pudimos acceder a los datos. Cerrá y volvé a abrir la app.");
+      return;
+    }
+    // Usuario por defecto si está vacío
+    const listaUsuarios =
+      Array.isArray(usuariosExistentes) && usuariosExistentes.length > 0
+        ? usuariosExistentes
+        : [{ user: "ludmi", pass: "1234" }];
 
-    const existeUsuarioGuardado =
-      usuariosGuardados.some(
-        (cuenta) =>
-          cuenta.usuario === usuarioIngresado &&
-          cuenta.password === pass
+    if (isRegister) {
+      if (cleanPass !== confirmPass.trim()) {
+        setErrorMsg("Las contraseñas no coinciden.");
+        return;
+      }
+      
+      const existe = listaUsuarios.find(
+        (u: any) => u.user.toLowerCase() === cleanUser.toLowerCase()
+      );
+      
+      if (existe) {
+        setErrorMsg("El nombre de usuario ya está en uso.");
+        return;
+      }
+
+      const nuevosUsuarios = [...listaUsuarios, { user: cleanUser, pass: cleanPass }];
+      await saveData("usuarios", nuevosUsuarios);
+      
+      if (Platform.OS === "web") {
+        window.alert("Cuenta creada correctamente. ¡Ya puedes iniciar sesión!");
+      } else {
+        Alert.alert("Éxito", "Cuenta creada correctamente. ¡Ya puedes iniciar sesión!");
+      }
+      setIsRegister(false);
+      setPass("");
+      setConfirmPass("");
+      setErrorMsg("");
+    } else {
+      const usuarioEncontrado = listaUsuarios.find(
+        (u: any) =>
+          u.user.toLowerCase() === cleanUser.toLowerCase() && u.pass === cleanPass
       );
 
-    if (
-      (usuarioIngresado !== usuario ||
-        pass !== password) &&
-      !existeUsuarioGuardado
-    ) {
-      setMensajeError("Usuario o contraseña incorrectos.");
-      return;
+      if (usuarioEncontrado) {
+        setAuthLoading(true);
+        setTimeout(() => {
+          setAuthLoading(false);
+          navigation.replace("Principal", {
+            screen: "Inicio",
+            params: { usuario: cleanUser },
+          });
+        }, 2000);
+      } else {
+        setErrorMsg("Usuario o contraseña incorrectos.");
+      }
     }
-
-    navigation.navigate("Principal");
-  };
-
-  const registrarCuenta = async () => {
-    setMensajeError("");
-    setCuentaCreada(false);
-
-    if (
-      !user.trim() ||
-      !pass.trim() ||
-      !confirmarPass.trim()
-    ) {
-      setMensajeError("Debe completar todos los campos.");
-      return;
-    }
-
-    if (pass !== confirmarPass) {
-      setMensajeError("Las contraseñas no coinciden.");
-      return;
-    }
-
-    const usuariosGuardados: Cuenta[] =
-      await getData("usuarios");
-    const usuarioNuevo = user.trim();
-
-    const usuarioExiste =
-      usuarioNuevo === usuario ||
-      usuariosGuardados.some(
-        (cuenta) => cuenta.usuario === usuarioNuevo
-      );
-
-    if (usuarioExiste) {
-      setMensajeError("Ese usuario ya existe.");
-      return;
-    }
-
-    const nuevosUsuarios = [
-      ...usuariosGuardados,
-      {
-        usuario: usuarioNuevo,
-        password: pass,
-      },
-    ];
-
-    await saveData("usuarios", nuevosUsuarios);
-
-    setCrearCuenta(false);
-    setPass("");
-    setConfirmarPass("");
-    setMensajeError("Cuenta creada. Ya puede ingresar.");
-    setCuentaCreada(true);
-  };
-
-  const cambiarModo = () => {
-    setCrearCuenta(!crearCuenta);
-    setMensajeError("");
-    setCuentaCreada(false);
-    setPass("");
-    setConfirmarPass("");
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Fashion Manager</Text>
-      <Text style={styles.subtitle}>
-        {crearCuenta
-          ? "Crear cuenta"
-          : "Iniciar sesión"}
-      </Text>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Moda App</Text>
+        <Text style={styles.subtitle}>
+          {isRegister ? "Crea una cuenta nueva" : "Inicia sesión para continuar"}
+        </Text>
 
-      <TextInput
-        placeholder="Usuario"
-        style={styles.input}
-        value={user}
-        onChangeText={setUser}
-      />
+        {errorMsg ? <Text style={styles.errorText}>⚠️ {errorMsg}</Text> : null}
 
-      <TextInput
-        placeholder="Contraseña"
-        value={pass}
-        onChangeText={setPass}
-        secureTextEntry={!mostrarPassword}
-        style={styles.input}
-      />
-
-      {crearCuenta && (
         <TextInput
-          placeholder="Confirmar contraseña"
-          value={confirmarPass}
-          onChangeText={setConfirmarPass}
-          secureTextEntry={!mostrarPassword}
+          placeholder="Usuario"
+          placeholderTextColor="#aaa"
           style={styles.input}
+          value={user}
+          onChangeText={setUser}
+          autoCapitalize="none"
         />
-      )}
 
-      <TouchableOpacity
-        onPress={() =>
-          setMostrarPassword(!mostrarPassword)
-        }
-      >
-        <Text style={styles.mostrar}>
-          {mostrarPassword
-            ? "Ocultar contraseña"
-            : "Mostrar contraseña"}
-        </Text>
-      </TouchableOpacity>
+        <TextInput
+          placeholder="Contraseña"
+          placeholderTextColor="#aaa"
+          secureTextEntry
+          style={styles.input}
+          value={pass}
+          onChangeText={setPass}
+          autoCapitalize="none"
+        />
 
-      {mensajeError ? (
-        <Text
-          style={[
-            styles.message,
-            cuentaCreada
-              ? styles.success
-              : styles.error,
-          ]}
+        {isRegister && (
+          <TextInput
+            placeholder="Confirmar Contraseña"
+            placeholderTextColor="#aaa"
+            secureTextEntry
+            style={styles.input}
+            value={confirmPass}
+            onChangeText={setConfirmPass}
+            autoCapitalize="none"
+          />
+        )}
+
+        <TouchableOpacity style={styles.button} onPress={handleAuth}>
+          <Text style={styles.buttonText}>
+            {isRegister ? "Registrarse" : "Ingresar"}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.switchButton}
+          onPress={() => {
+            setIsRegister(!isRegister);
+            setErrorMsg("");
+            setPass("");
+            setConfirmPass("");
+          }}
         >
-          {mensajeError}
-        </Text>
-      ) : null}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={
-          crearCuenta
-            ? registrarCuenta
-            : iniciarSesion
-        }
-      >
-        <Text style={styles.buttonText}>
-          {crearCuenta
-            ? "Crear cuenta"
-            : "Ingresar"}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.linkButton}
-        onPress={cambiarModo}
-      >
-        <Text style={styles.linkText}>
-          {crearCuenta
-            ? "Ya tengo una cuenta"
-            : "Crear una cuenta"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+          <Text style={styles.switchText}>
+            {isRegister
+              ? "¿Ya tienes cuenta? Inicia sesión"
+              : "¿No tienes cuenta? Regístrate aquí"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <LoadingOverlay visible={authLoading} />
+    </SafeAreaView>
   );
 }
 
@@ -216,60 +170,76 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f6f6f6",
     padding: 20,
   },
+  card: {
+    backgroundColor: "#fff",
+    width: "100%",
+    maxWidth: 400,
+    padding: 30,
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     textAlign: "center",
-    marginBottom: 8,
     fontWeight: "bold",
+    color: "#7B2CBF",
+    marginBottom: 5,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 14,
+    color: "#666",
     textAlign: "center",
-    marginBottom: 30,
-    color: "#555",
-    fontWeight: "bold",
+    marginBottom: 25,
+  },
+  errorText: {
+    color: "#d62828",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    backgroundColor: "#fde8e8",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 15,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
+    borderColor: "#e0e0e0",
+    backgroundColor: "#fafafa",
+    padding: 14,
+    fontSize: 16,
     marginBottom: 15,
-    borderRadius: 10,
+    borderRadius: 12,
+    color: "#333",
   },
   button: {
     backgroundColor: "#7B2CBF",
-    padding: 15,
-    borderRadius: 10,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 10,
+    elevation: 2,
   },
   buttonText: {
     color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
+    fontSize: 16,
   },
-  message: {
-    marginBottom: 15,
-    textAlign: "center",
+  switchButton: {
+    marginTop: 20,
+    padding: 10,
   },
-  error: {
-    color: "red",
-  },
-  success: {
-    color: "green",
-  },
-  mostrar: {
-    color: "#7B2CBF",
-    textAlign: "right",
-    marginBottom: 15,
-  },
-  linkButton: {
-    padding: 15,
-    marginTop: 5,
-  },
-  linkText: {
+  switchText: {
     color: "#7B2CBF",
     textAlign: "center",
-    fontWeight: "bold",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });
